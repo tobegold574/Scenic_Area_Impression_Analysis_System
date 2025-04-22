@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>情感互动关系图</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #f8cdda, #1d2b64);
+            color: #333;
+            padding: 1px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        label {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            margin-right: 10px;
+            outline: none;
+        }
+
+        select:focus {
+            border-color: #1d2b64;
+            box-shadow: 0 0 5px rgba(29, 43, 100, 0.5);
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #1d2b64;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #3742fa;
+        }
+
+        #scatter-chart {
+            width: 97%;
+            height: 540px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            padding: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>景区评论情感互动关系图</h1>
+
+    <!-- 下拉框选择 -->
+    <form action="/searchecharts/sentiment_like_analysis" method="GET">
+        <label for="topic">选择一个博文:</label>
+        <select name="topic" id="topic">
+            {% for topic in topics %}
+            <option value="{{ topic }}" {% if topic == data.topic %}selected{% endif %}>
+                {{ topic[:12] }}{% if topic|length > 12 %}...{% endif %}
+            </option>
+            {% endfor %}
+        </select>
+        <button type="submit">查看分析</button>
+    </form>
+
+    <div id="scatter-chart"></div>
+
+    <script>
+        // 将传递的数据嵌入到 JavaScript 中
+        const data = {{ data | tojson }};
+
+        function drawScatterChart() {
+            var chart = echarts.init(document.getElementById('scatter-chart'));
+
+            // 为每个情感类型收集数据
+            var seriesData = {};
+            data.forEach(item => {
+                if (!seriesData[item.sentiment]) {
+                    seriesData[item.sentiment] = [];
+                }
+                seriesData[item.sentiment].push([item.like_count, item.total_number]);
+            });
+
+            // 生成系列配置
+            var series = Object.keys(seriesData).map(sentiment => ({
+                name: sentiment,
+                type: 'scatter',
+                data: seriesData[sentiment],
+                symbolSize: 10,
+                markPoint: {
+                    data: [
+                        { type: 'max', name: '最大值' },
+                        { type: 'min', name: '最小值' }
+                    ]
+                },
+                markLine: {
+                    data: [{ type: 'average', name: '平均值' }]
+                }
+            }));
+
+            var option = {
+                title: {
+                    text: '点赞数与评论总数与情感类型的关系',
+                    textStyle: {
+                        color: '#333',
+                    },
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: function (params) {
+                        return params.seriesName + '<br/>' +
+                               '点赞数: ' + params.value[0] + '<br/>' +
+                               '评论总数: ' + params.value[1];
+                    }
+                },
+                xAxis: {
+                    type: 'value',
+                    name: '点赞数',
+                    min: 0,
+                    max: Math.max(...data.map(item => item.like_count)) * 1.2
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '评论总数',
+                    min: 0,
+                    max: Math.max(...data.map(item => item.total_number)) * 1.2
+                },
+                legend: {
+                    data: Object.keys(seriesData)
+                },
+                series: series
+            };
+
+            chart.setOption(option);
+        }
+
+        // 画出散点图
+        drawScatterChart();
+    </script>
+</body>
+</html>

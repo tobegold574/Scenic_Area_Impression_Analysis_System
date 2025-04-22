@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>景区分析系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome/css/font-awesome.min.css" rel="stylesheet"> <!-- 引入图标库 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            height: 100%;
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f9fc;
+        }
+
+        /* 侧边栏设计 */
+        .sidebar {
+            width: 260px;
+            height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: linear-gradient(135deg, #02abab,#0874ec, #02abab);
+            color: white;
+            border-top-right-radius: 10px;
+            border-bottom-right-radius: 10px;
+            padding: 30px 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            transition: all 0.3s ease; /* 动画过渡 */
+        }
+
+        .sidebar h2 {
+            font-size: 26px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 20px;
+        }
+
+        .sidebar ul li a {
+            text-decoration: none;
+            color: #fff;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-left: -15px; /* 让链接和图标之间稍微有间距 */
+        }
+
+        .sidebar ul li a:hover {
+            background-color: #ffffff;
+            color: #4caf50;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            transform: translateX(5px);
+        }
+
+        .sidebar ul li a i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        /* 内容区样式 */
+        .content {
+            margin-left: 260px; /* 留出侧边栏的空间 */
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: margin-left 0.3s ease; /* 动画过渡 */
+        }
+
+        iframe {
+            flex-grow: 1;
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 10px;
+        }
+
+        /* 隐藏/显示按钮样式 - 位于右上角 */
+        .toggle-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #6ca5e5;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 9999;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn:hover {
+            background-color: #529cee;
+        }
+
+        /* 隐藏侧边栏时的样式 */
+        .sidebar-hidden {
+            width: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .content-expanded {
+            margin-left: 0px; /* 侧边栏收起时，内容区域占满整个屏幕 */
+        }
+
+        /* 悬浮球 */
+        .floating-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #ff6347;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 9999;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .floating-btn:hover {
+            background-color: #ff4500;
+        }
+
+        /* 菜单 */
+        .floating-menu {
+            position: fixed;
+            bottom: 70px;
+            right: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 10000;
+        }
+
+        .floating-menu a {
+            display: block;
+            padding: 10px 20px;
+            color: #333;
+            text-decoration: none;
+            font-size: 16px;
+            border-bottom: 1px solid #ddd;
+            transition: all 0.3s ease;
+        }
+
+        .floating-menu a:hover {
+            background-color: #f0f0f0;
+        }
+
+        .floating-menu a:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 侧边栏 -->
+    <div class="sidebar" id="sidebar">
+        <h2>景区分析推荐系统</h2>
+        <ul>
+            <li><a href="/map" target="contentFrame" onclick="setIframeSrc('/map')"><i class="fa fa-map"></i>全国景区分布</a></li>
+            <li><a href="/districtname" target="contentFrame" onclick="setIframeSrc('/districtname')"><i class="fa fa-building"></i>市级景区分析</a></li>
+            <li><a href="/cityname" target="contentFrame" onclick="setIframeSrc('/cityname')"><i class="fa fa-map-marker"></i>县级景区分析</a></li>
+            <li><a href="/recomend" target="contentFrame" onclick="setIframeSrc('/recomend')"><i class="fa fa-location-arrow"></i>附近景区推荐</a></li>
+            <li><a href="/search" target="contentFrame" onclick="setIframeSrc('/search')"><i class="fa fa-search"></i>景区风评获取</a></li>
+            <li><a href="/searchmap" target="contentFrame" onclick="setIframeSrc('/searchmap')"><i class="fa fa-globe"></i>景区风评分布</a></li>
+            <li><a href="/searchecharts" target="contentFrame" onclick="setIframeSrc('/searchecharts')"><i class="fa fa-line-chart"></i>景区情感分析</a></li>
+            <li><a href="/searchecharts/sentiment_like_analysis" target="contentFrame" onclick="setIframeSrc('/searchecharts/sentiment_like_analysis')"><i class="fa fa-thumbs-up"></i>景区互动分析</a></li>
+            <li><a href="/searchecharts/wordcloud_analysis" target="contentFrame" onclick="setIframeSrc('/searchecharts/wordcloud_analysis')"><i class="fa fa-cloud"></i>景区词云分析</a></li>
+            <li><a href="/searchechartswebs" target="contentFrame" onclick="setIframeSrc('/searchechartswebs')"><i class="fa fa-comments"></i>景区评论分析</a></li>
+        </ul>
+    </div>
+
+    <!-- 内容区 -->
+    <div class="content" id="content">
+        <iframe name="contentFrame" id="contentFrame" src="/map"></iframe>
+    </div>
+
+    <!-- 隐藏/显示按钮 -->
+    <button class="toggle-btn" id="toggleBtn" onclick="toggleSidebar()">
+        <i class="fa fa-bars"></i>
+    </button>
+
+    <!-- 悬浮球 -->
+    <button class="floating-btn" id="floatingBtn" onclick="toggleFloatingMenu()">
+        <i class="fa fa-cogs"></i>
+    </button>
+
+    <!-- 悬浮菜单 -->
+    <div class="floating-menu" id="floatingMenu">
+        <a href="/logout" onclick="logout()">退出</a>
+        <a href="/profile" target="contentFrame" onclick="setIframeSrc('/profile')">个人中心</a>
+        <a href="/change_password" target="contentFrame" onclick="setIframeSrc('/change_password')">修改密码</a>
+        <a href="/announcements" target="contentFrame" onclick="setIframeSrc('/announcements')">公告</a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 切换侧边栏的显示/隐藏
+        function toggleSidebar() {
+            var sidebar = document.getElementById("sidebar");
+            var content = document.getElementById("content");
+            var toggleBtn = document.getElementById("toggleBtn");
+
+            if (sidebar.classList.contains("sidebar-hidden")) {
+                sidebar.classList.remove("sidebar-hidden");
+                content.classList.remove("content-expanded");
+                toggleBtn.innerHTML = '<i class="fa fa-bars"></i>';
+            } else {
+                sidebar.classList.add("sidebar-hidden");
+                content.classList.add("content-expanded");
+                toggleBtn.innerHTML = '<i class="fa fa-arrow-right"></i>';
+            }
+
+            // 刷新 iframe 内容
+            var iframe = document.getElementById("contentFrame");
+            setIframeSrc(iframe.src);
+        }
+
+        // 设置 iframe 的 src 属性并刷新页面
+        function setIframeSrc(src) {
+            var iframe = document.getElementById("contentFrame");
+            iframe.src = ""; // 清空
+            iframe.src = src; // 重新设置
+        }
+
+        // 切换悬浮菜单显示/隐藏
+        function toggleFloatingMenu() {
+            var menu = document.getElementById("floatingMenu");
+            menu.style.display = menu.style.display === "block" ? "none" : "block";
+        }
+
+        // 退出操作
+        function logout() {
+            // 直接跳转到退出页面，避免使用 iframe
+            window.location.href = '/logout';
+        }
+    </script>
+</body>
+</html>

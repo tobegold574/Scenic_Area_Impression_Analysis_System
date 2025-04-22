@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>景点评论分析</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #f8cdda, #1d2b64);
+            color: #333;
+            padding: 1px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        h2 {
+            color: #fff;
+            margin-top: 20px;
+            font-size: 1.8em;
+        }
+
+        .chart-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+
+        .chart {
+            width: 46%;  /* 每个图表容器占据48%宽度 */
+            height: 400px;
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <h1>景区博文评论分析</h1>
+
+    <h2>情感分布与性别分布</h2>
+    <div class="chart-container">
+        <div id="sentimentChart" class="chart"></div>
+        <div id="genderChart" class="chart"></div>
+    </div>
+
+    <h2>时间序列与用户活动</h2>
+    <div class="chart-container">
+        <div id="timeSeriesChart" class="chart"></div>
+        <div id="userActivityChart" class="chart"></div>
+    </div>
+
+    <h2>来源分布与点赞与评论</h2>
+    <div class="chart-container">
+        <div id="sourceChart" class="chart"></div>
+        <div id="likesCommentsChart" class="chart"></div>
+    </div>
+
+    <script>
+        // Load sentiment distribution
+        fetch('/searchecharts/api/sentiment_distribution')
+            .then(response => response.json())
+            .then(data => {
+                var sentimentChart = echarts.init(document.getElementById('sentimentChart'));
+                sentimentChart.setOption({
+                    title: { text: '情感分布' },
+                    tooltip: {},
+                    xAxis: {
+                        type: 'category',
+                        data: Object.keys(data)
+                    },
+                    yAxis: { type: 'value' },
+                    series: [{
+                        name: '数量',
+                        type: 'bar',
+                        data: Object.values(data)
+                    }]
+                });
+            });
+
+        // Load time series
+        fetch('/searchecharts/api/time_series')
+            .then(response => response.json())
+            .then(data => {
+                var timeSeriesChart = echarts.init(document.getElementById('timeSeriesChart'));
+                timeSeriesChart.setOption({
+                    title: { text: '随时间变化的评论数量' },
+                    tooltip: {},
+                    xAxis: {
+                        type: 'category',
+                        data: Object.keys(data)
+                    },
+                    yAxis: { type: 'value' },
+                    series: [{
+                        name: '数量',
+                        type: 'line',
+                        data: Object.values(data)
+                    }]
+                });
+            });
+
+        // Load gender distribution
+        fetch('/searchecharts/api/gender_distribution')
+            .then(response => response.json())
+            .then(data => {
+                // 映射性别
+                const genderMap = {
+                    'm': '男性',
+                    'f': '女性'
+                };
+
+                const mappedData = {};
+                for (const key in data) {
+                    mappedData[genderMap[key]] = data[key];
+                }
+
+                var genderChart = echarts.init(document.getElementById('genderChart'));
+                genderChart.setOption({
+                    title: { text: '性别分布' },
+                    tooltip: {},
+                    xAxis: {
+                        type: 'category',
+                        data: Object.keys(mappedData)
+                    },
+                    yAxis: { type: 'value' },
+                    series: [{
+                        name: '数量',
+                        type: 'bar',
+                        data: Object.values(mappedData)
+                    }]
+                });
+            });
+
+        // Load user activity
+        fetch('/searchecharts/api/user_activity')
+            .then(response => response.json())
+            .then(data => {
+                var userActivityChart = echarts.init(document.getElementById('userActivityChart'));
+                userActivityChart.setOption({
+                    title: { text: '用户活动' },
+                    tooltip: {},
+                    xAxis: {
+                        type: 'category',
+                        data: Object.keys(data)
+                    },
+                    yAxis: { type: 'value' },
+                    series: [{
+                        name: '数量',
+                        type: 'bar',
+                        data: Object.values(data)
+                    }]
+                });
+            });
+
+        // Load source distribution
+        fetch('/searchecharts/api/source_distribution')
+            .then(response => response.json())
+            .then(data => {
+                var sourceChart = echarts.init(document.getElementById('sourceChart'));
+                sourceChart.setOption({
+                    title: { text: '来源分布' },
+                    tooltip: {},
+                    xAxis: {
+                        type: 'category',
+                        data: Object.keys(data)
+                    },
+                    yAxis: { type: 'value' },
+                    series: [{
+                        name: '数量',
+                        type: 'bar',
+                        data: Object.values(data)
+                    }]
+                });
+            });
+
+        // Load likes vs comments
+        fetch('/searchecharts/api/likes_comments')
+            .then(response => response.json())
+            .then(data => {
+                var likesCommentsChart = echarts.init(document.getElementById('likesCommentsChart'));
+                likesCommentsChart.setOption({
+                    title: { text: '点赞与评论' },
+                    tooltip: {},
+                    xAxis: {
+                        type: 'value',
+                        name: '点赞'
+                    },
+                    yAxis: {
+                        type: 'value',
+                        name: '评论'
+                    },
+                    series: [{
+                        name: '点赞与评论',
+                        type: 'scatter',
+                        data: data.map(d => [d.like_count, d.total_number])
+                    }]
+                });
+            });
+    </script>
+</body>
+</html>

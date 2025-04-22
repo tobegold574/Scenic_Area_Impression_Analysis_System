@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发送公告</title>
+    <!-- 引入layui的CSS文件 -->
+    <link rel="stylesheet" href="https://cdn.staticfile.org/layui/2.6.8/css/layui.css">
+    <!-- 引入Font Awesome的CSS文件 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* 自定义样式 */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .container h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        .form-group textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+        }
+        .btn-send {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #1E9FFF;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .btn-send:hover {
+            background-color: #0C7CBF;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-bullhorn"></i> 发送公告</h1>
+        <form method="POST">
+            <div class="form-group">
+                <label for="announcement_content"><i class="fas fa-comment"></i> 公告内容：</label>
+                <textarea name="announcement_content" id="announcement_content" placeholder="在这里输入您要发送的公告..." required></textarea>
+            </div>
+            <button type="submit" class="btn-send"><i class="fas fa-paper-plane"></i> 发送</button>
+        </form>
+    </div>
+
+    <!-- 引入layui的JS文件 -->
+    <script src="https://cdn.staticfile.org/layui/2.6.8/layui.js"></script>
+</body>
+</html>

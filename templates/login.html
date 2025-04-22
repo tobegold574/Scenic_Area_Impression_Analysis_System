@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旅游景区数据分析与推荐系统</title>
+    <!-- 引入Layui的CSS文件 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/layui@2.6.8/dist/css/layui.css">
+    <!-- 引入Font Awesome图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        html, body {
+            height: 100%;  /* 确保body和html的高度都为100% */
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-image: url('https://picsum.photos/1600/900?random=1');
+            background-size: cover;  /* 背景图像覆盖整个屏幕 */
+            background-position: center;  /* 背景图像居中显示 */
+            background-attachment: fixed;  /* 背景固定 */
+            display: flex;
+            height: 100vh;
+            justify-content: space-between; /* 左右两边并排 */
+        }
+        .left-panel {
+            width: 66.66%; /* 左侧为三分之二 */
+            background-color: rgba(255, 255, 255, 0.4); /* 使背景稍微透明 */
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;  /* 如果内容超过屏幕高度，显示滚动条 */
+        }
+        .right-panel {
+            width: 33.33%; /* 右侧为三分之一 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .login-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .login-title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            width: 250px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .card i {
+            font-size: 40px;
+            color: #1E90FF;
+            margin-bottom: 10px;
+        }
+        .card h3 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .card p {
+            color: #666;
+            font-size: 14px;
+        }
+        .card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+        @media (max-width: 768px) {
+            .left-panel, .right-panel {
+                width: 100%; /* 屏幕较小的情况下，左右两边占满屏幕 */
+                padding: 10px;
+            }
+            .card-container {
+                justify-content: center; /* 居中卡片 */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 左侧功能模块卡片展示 -->
+    <div class="left-panel">
+        <div class="card">
+            <i class="fas fa-users"></i>
+            <h3>用户管理</h3>
+            <p>提供用户基本信息管理、权限控制及数据统计功能。</p>
+        </div>
+        <div class="card">
+            <i class="fas fa-location-arrow"></i>
+            <h3>景区数据管理</h3>
+            <p>支持景区基本数据的录入、编辑和管理。</p>
+        </div>
+        <div class="card">
+            <i class="fas fa-comments"></i>
+            <h3>景区风评管理</h3>
+            <p>管理景区评论数据，支持评论查看、删除、编辑等操作。</p>
+        </div>
+        <div class="card">
+            <i class="fas fa-bullhorn"></i>
+            <h3>发布公告信息</h3>
+            <p>管理员可发布公告，通知用户相关重要信息。</p>
+        </div>
+        <div class="card">
+            <i class="fas fa-pencil-alt"></i>
+            <h3>管理公告信息</h3>
+            <p>对已发布的公告进行查看、编辑和删除操作。</p>
+        </div>
+        <div class="card">
+            <i class="fas fa-chart-line"></i>
+            <h3>景区风评分析</h3>
+            <p>分析景区评论数据，生成情感趋势图表。</p>
+        </div>
+        <div class="card">
+            <i class="fas fa-map-marked-alt"></i>
+            <h3>全国景区分布</h3>
+            <p>通过地图展示全国景区的地理分布情况。</p>
+        </div>
+        <div class="card">
+            <i class="fas fa-city"></i>
+            <h3>市级与县级景区分析</h3>
+            <p>提供市级和县级景区数据的细化分析。</p>
+        </div>
+        <div class="card">
+            <i class="fas fa-map-marker-alt"></i>
+            <h3>附近景区推荐</h3>
+            <p>根据用户位置，提升游客选择体验。</p>
+        </div>
+        <div class="card">
+            <i class="fas fa-smile"></i>
+            <h3>景区情感分析</h3>
+            <p>通过情感分析模型，对评论进行正负面情感的分析。</p>
+        </div>
+        <div class="card">
+            <i class="fas fa-sync-alt"></i>
+            <h3>互动分析</h3>
+            <p>分析景区评论互动频率和内容。</p>
+        </div>
+        <div class="card">
+            <i class="fas fa-cloud"></i>
+            <h3>词云分析</h3>
+            <p>生成景区评论中的词云，了解游客关心的热点话题。</p>
+        </div>
+    </div>
+
+    <!-- 右侧登录框 -->
+    <div class="right-panel">
+        <div class="login-container">
+            <div class="login-title"><i class="fas fa-sun"></i> 旅游景区数据分析与推荐系统</div>
+            <form class="layui-form" action="/login" method="post">
+                <div class="layui-form-item">
+                    <label class="layui-form-label"><i class="fas fa-user"></i> 用户名：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="username" lay-verify="required" placeholder="请输入用户名" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label"><i class="fas fa-lock"></i> 密码：</label>
+                    <div class="layui-input-block">
+                        <input type="password" name="password" lay-verify="required" placeholder="请输入密码" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="login"><i class="fas fa-sign-in-alt"></i> 登录</button>
+                    </div>
+                </div>
+            </form>
+            <div class="text-center">
+                还没有账号？<a href="/register">立即注册</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入Layui的JS文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/layui@2.6.8/dist/layui.js"></script>
+    <script>
+        layui.use('form', function(){
+            var form = layui.form;
+
+        });
+    </script>
+</body>
+</html>

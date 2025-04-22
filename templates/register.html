@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册</title>
+    <!-- 引入Layui的CSS文件 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/layui@2.6.8/dist/css/layui.css">
+    <!-- 引入Font Awesome图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            background-image: url('https://picsum.photos/1600/900?random=1');
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        .register-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 400px;
+            width: 100%;
+        }
+        .register-title {
+            text-align: center;
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-title"><i class="fas fa-user-plus"></i> 注册</div>
+        <form class="layui-form" action="/register" method="post">
+            <div class="layui-form-item">
+                <label class="layui-form-label"><i class="fas fa-user"></i> 用户名:</label>
+                <div class="layui-input-block">
+                    <input type="text" name="username" lay-verify="required" placeholder="请输入用户名" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label"><i class="fas fa-lock"></i> 密码:</label>
+                <div class="layui-input-block">
+                    <input type="password" name="password" lay-verify="required" placeholder="请输入密码" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label"><i class="fas fa-users"></i> 角色:</label>
+                <div class="layui-input-block">
+                    <select name="role" lay-verify="required">
+                        <option value="">请选择角色</option>
+                        <option value="admin">管理员</option>
+                        <option value="user">普通用户</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="register"><i class="fas fa-user-plus"></i> 注册</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- 引入Layui的JS文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/layui@2.6.8/dist/layui.js"></script>
+    <script>
+        // 使用Layui的form模块进行表单验证
+        layui.use('form', function(){
+            var form = layui.form;
+
+
+        });
+    </script>
+</body>
+</html>

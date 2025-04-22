@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>景点风评分析</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #f8cdda, #1d2b64);
+            color: #333;
+            margin: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        form {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+            flex: 1;
+            max-width: 400px;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #5cb85c;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        input[type="submit"]:hover {
+            background-color: #4cae4c;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+    <h1>景点风评获取</h1>
+    <form action="/search" method="post">
+        <input type="text" id="query" name="query" placeholder="请输入关键词" required>
+        <input type="submit" value="搜索">
+    </form>
+
+    {% if results %}
+    <h2>搜索结果: "{{ query }}"</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>时间</th>
+                <th>文本</th>
+                <th>来源</th>
+                <th>用户名</th>
+
+                <th>性别</th>
+                <th>点赞数</th>
+                <th>评论总数</th>
+                <th>情感</th>
+                <th>情感分值</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in results %}
+            <tr>
+                <td>{{ result['Created At'] }}</td>
+                <td>{{ result['Text'] }}</td>
+                <td>{{ result['Source'] }}</td>
+                <td>{{ result['Screen Name'] }}</td>
+                <td>{{ result['Gender'] }}</td>
+                <td>{{ result['Like Count'] }}</td>
+                <td>{{ result['Total Number'] }}</td>
+                <td>{{ result['情感'] }}</td>
+                <td>{{ result['情感分值'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>词云分析</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud/dist/echarts-wordcloud.min.js"></script>
+    <style>
+        body {
+            font-family: 'Orbitron', sans-serif; /* 科技感字体 */
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #001f3f, #005f73); /* 深色背景 */
+            background-size: 400% 400%; /* 动态背景 */
+            animation: gradient 15s ease infinite; /* 背景渐变动效 */
+            color: #ffffff; /* 白色字体 */
+            overflow: hidden; /* 防止滚动条出现 */
+            height: 100vh; /* 确保占满整个视口高度 */
+        }
+
+        @keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+            color: #00bcd4; /* 明亮的青色 */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            font-size: 36px; /* 加大字体 */
+        }
+
+        #wordcloud {
+            width: 80vw; /* 使用视口宽度 */
+            height: 60vh; /* 使用视口高度 */
+            margin: 20px auto;
+            border-radius: 15px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.7);
+            background-color: rgba(0, 31, 63, 0.8); /* 深色背景带透明度 */
+        }
+
+        .dropdown-container {
+            text-align: center;
+            margin: 20px;
+        }
+
+        select {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #00bcd4;
+            background: rgba(0, 95, 115, 0.9); /* 深青色 */
+            color: #ffffff; /* 白色字体 */
+            font-size: 16px;
+            transition: all 0.3s ease;
+            width: 200px; /* 下拉框宽度 */
+        }
+
+        select:hover {
+            border-color: #009688; /* 明亮的青色 */
+            background: rgba(0, 125, 130, 1);
+        }
+
+        input[type="submit"] {
+            padding: 10px 20px;
+            background-color: #00bcd4; /* 明亮的青色 */
+            border: none;
+            border-radius: 5px;
+            color: #ffffff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #009688; /* 明亮的青色 */
+            transform: scale(1.05); /* 增加悬停时的缩放效果 */
+        }
+
+        .comment {
+            position: absolute;
+            white-space: nowrap;
+            font-size: 18px; /* 字体大小 */
+            color: rgba(255, 255, 255, 0.9); /* 白色字体 */
+            animation: float 15s linear infinite; /* 调整为15秒的持续时间 */
+        }
+
+        /* 定义弹幕的移动动画 */
+        @keyframes float {
+            0% {
+                transform: translateX(100%);
+            } /* 从右侧开始 */
+            100% {
+                transform: translateX(-100%);
+            } /* 移动到左侧 */
+        }
+    </style>
+</head>
+
+<body>
+    <h1>景区话题点赞最多评论词云图</h1>
+
+    <div class="dropdown-container">
+        <form method="POST">
+            <label for="topic"></label>
+           <select name="topic" id="topic" onchange="this.form.submit()">
+    <option value="">-- 请选择 --</option>
+    {% for topic in topics %}
+        <option value="{{ topic }}" {% if selected_topic == topic %}selected{% endif %}>
+            {{ topic[:12] }}{% if topic|length > 12 %}...{% endif %}
+        </option>
+    {% endfor %}
+</select>
+            <input type="submit" value="提交">
+        </form>
+    </div>
+
+    <div id="wordcloud"></div>
+
+    <script>
+        // 将传递的数据嵌入到 JavaScript 中
+        const data = {{ data | tojson }};
+        const allComments = {{ all_comments | tojson }};
+
+        function drawWordCloud() {
+            var chart = echarts.init(document.getElementById('wordcloud'));
+
+            // 处理数据格式
+            const wordData = data.map(item => ({
+                name: item.text, // 评论内容
+                value: item.like_count, // 点赞数
+                sentiment: item.sentiment // 情感类型
+            }));
+
+            var option = {
+                title: {
+                    text: '点赞数最多的评论词云',
+                    subtext: '正面、负面、中性各三条',
+                    left: 'center',
+                    textStyle: {
+                        color: '#00bcd4' // 明亮的青色
+                    },
+                    subtextStyle: {
+                        color: '#ffffff' // 白色字体
+                    }
+                },
+                tooltip: {
+                    formatter: function (params) {
+                        return `${params.data.name}<br/>点赞数: ${params.data.value}<br/>情感: ${params.data.sentiment}`;
+                    }
+                },
+                series: [{
+                    type: 'wordCloud',
+                    gridSize: 10,
+                    sizeRange: [20, 80], // 增大字体范围
+                    rotationRange: [0, 0],
+                    textStyle: {
+                        normal: {
+                            color: function () {
+                                // 使用随机颜色
+                                return 'rgb(' + Math.round(Math.random() * 255) + ',' + Math.round(Math.random() * 255) + ',' + Math.round(Math.random() * 255) + ')';
+                            }
+                        },
+                        emphasis: {
+                            shadowBlur: 10,
+                            shadowColor: '#333'
+                        }
+                    },
+                    data: wordData
+                }]
+            };
+
+            chart.setOption(option);
+        }
+
+        // 随机生成评论并添加到页面
+        function randomizeComments() {
+            const container = document.body; // 获取容器
+            const commentLimit = 10; // 设置同时显示的评论数量
+            const selectedComments = allComments.sort(() => 0.5 - Math.random()).slice(0, commentLimit); // 随机选择评论
+
+            selectedComments.forEach(comment => {
+                const commentElement = document.createElement('div');
+                commentElement.className = 'comment';
+                commentElement.innerText = comment;
+
+                // 随机生成位置
+                const startX = Math.random() * (window.innerWidth - 200); // 减去评论框的宽度
+                commentElement.style.left = `${startX}px`;
+                commentElement.style.top = `${Math.random() * (window.innerHeight - 50)}px`; // 随机Y轴位置
+
+                container.appendChild(commentElement);
+
+                // 为每个评论设置不同的持续时间
+                const duration = Math.random() * 15 + 10; // 每个评论的持续时间，随机在10到25秒之间
+                commentElement.style.animationDuration = `${duration}s`; // 设置动画时长
+            });
+        }
+
+        // 绘制词云图
+        drawWordCloud();
+        // 随机化评论
+        randomizeComments();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理公告</title>
+    <!-- 引入layui的CSS文件 -->
+    <link rel="stylesheet" href="https://cdn.staticfile.org/layui/2.6.8/css/layui.css">
+    <!-- 引入Font Awesome的CSS文件 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* 自定义样式 */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .container h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button.edit-btn {
+            background-color: #1E9FFF;
+            color: #fff;
+            margin-right: 10px;
+        }
+        button.delete-btn {
+            background-color: #FF5722;
+            color: #fff;
+        }
+        button:hover {
+            background-color: #0C7CBF;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-bullhorn"></i> 管理公告</h1>
+        <ul>
+            {% for announcement in announcements %}
+            <li>
+                <form method="POST">
+                    <textarea name="edited_announcement">{{ announcement.content }}</textarea>
+                    <input type="hidden" name="announcement_id" value="{{ loop.index0 }}">
+                    <button type="submit" class="edit-btn" name="edit_announcement"><i class="fas fa-edit"></i> 保存</button>
+                    <button type="submit" class="delete-btn" name="delete_announcement"><i class="fas fa-trash-alt"></i> 删除</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- 引入layui的JS文件 -->
+    <script src="https://cdn.staticfile.org/layui/2.6.8/layui.js"></script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户资料</title>
+    <!-- 引入layui的CSS文件 -->
+    <link rel="stylesheet" href="https://cdn.staticfile.org/layui/2.6.8/css/layui.css">
+    <!-- 引入Font Awesome的CSS文件 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* 自定义样式 */
+        .user-info-table {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="layui-container">
+        <div class="layui-row">
+            <div class="layui-col-md10">
+                <div class="layui-card">
+                    <div class="layui-card-header">
+                        <h2><i class="fas fa-user"></i>用户信息</h2>
+                    </div>
+                    <div class="layui-card-body">
+                        <!-- 使用表格展示用户信息 -->
+                        <table class="layui-table user-info-table">
+                            <colgroup>
+                                <col width="150">
+                                <col>
+                            </colgroup>
+                            <tbody>
+                                <tr>
+                                    <td><i class="fas fa-user"></i> 用户名</td>
+                                    <td>{{ user.username }}</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-envelope"></i> 邮箱</td>
+                                    <td>{{ user.email }}</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-user-circle"></i> 姓名</td>
+                                    <td>{{ user.full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-map-marker-alt"></i> 地址</td>
+                                    <td>{{ user.address }}</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-phone"></i> 电话号码</td>
+                                    <td>{{ user.phone_number }}</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-birthday-cake"></i> 生日</td>
+                                    <td>{{ user.birthday }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <!-- 添加到编辑个人资料的链接 -->
+                        <a href="{{ url_for('login_app.edit_profile') }}" class="layui-btn layui-btn-normal">
+                            <i class="fas fa-edit"></i> 编辑资料
+                        </a>
+                        <!-- 添加到修改密码的链接 -->
+                        <a href="{{ url_for('login_app.change_password') }}" class="layui-btn layui-btn-danger">
+                            <i class="fas fa-key"></i> 修改密码
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入layui的JS文件 -->
+    <script src="https://cdn.staticfile.org/layui/2.6.8/layui.js"></script>
+</body>
+</html>

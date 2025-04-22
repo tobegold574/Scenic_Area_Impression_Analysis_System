@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>景区数量 - 百度地图</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            background: #f3f6fb; /* 浅灰背景 */
+            color: #333;
+        }
+
+        #chart-container {
+            position: relative;
+            flex-grow: 1;
+            width: 100%;
+            z-index: 1;
+            background-color: #f8f8f8;
+            border-radius: 8px;
+
+        }
+          h2 {
+            text-align: center;
+            font-size: 24px;
+
+            color: #529cee;
+            font-weight: bold;
+        }
+
+        .card-container {
+            position: absolute;
+            top: 20px;
+            bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            z-index: 2;
+            width: 250px;
+        }
+
+        .card-container.left {
+            left: 20px;
+        }
+
+        .card-container.right {
+            right: 20px;
+        }
+
+        .card {
+            margin: 15px 0;
+            padding: 18px 20px;
+            background: linear-gradient(145deg, #ffffff, #e8e8e8);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease-in-out;
+            height: 100px; /* 改为稍高一点的卡片 */
+        }
+
+        .card:hover {
+            transform: translateY(-5px); /* 鼠标悬浮效果 */
+        }
+
+        .card h3 {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2f3b50;
+            margin-bottom: 8px;
+            text-transform: capitalize;
+        }
+
+        .card p {
+            font-size: 16px;
+            color: #6c7c87;
+            margin: 5px 0;
+        }
+
+        .card .number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1e90ff; /* 评分数、评论数、景区数量数字用蓝色突出显示 */
+            transition: transform 0.3s ease;
+        }
+
+        .card a {
+            color: #1e90ff;
+            text-decoration: none;
+        }
+
+        .district-container {
+            position: absolute;
+            bottom: 1px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 20px;
+            z-index: 2;
+            flex-wrap: wrap;
+        }
+
+        .district-container .card {
+            width: 160px;
+            margin: 1px;
+            padding: 15px;
+            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .district-container .card:hover {
+            transform: translateY(-5px); /* 鼠标悬浮效果 */
+        }
+
+        @media (max-width: 768px) {
+            .card-container {
+                position: relative;
+                width: 100%;
+                display: block;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: 0;
+            }
+
+            .district-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .district-container .card {
+                width: 90%;
+                margin-bottom: 15px;
+            }
+        }
+
+        .number-up {
+            animation: numberUp 1s ease-out forwards;
+        }
+
+        @keyframes numberUp {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- 展示评论数最多的5个景区 -->
+    <div class="card-container left">
+        <h2>评论数</h2>
+        {% for attraction in top_commentCount %}
+        <div class="card">
+            <h3><a href="{{ attraction.url }}" target="_blank">{{ attraction.word }}</a></h3>
+            <p> <span class="number number-up">{{ attraction.commentCount }}</span></p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- 展示评分最高的5个景区 -->
+    <div class="card-container right">
+        <h2>评分</h2>
+        {% for attraction in top_commentScore %}
+        <div class="card">
+            <h3><a href="{{ attraction.url }}" target="_blank">{{ attraction.word }}</a></h3>
+            <p><span class="number number-up">{{ attraction.commentScore }}</span></p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- 展示景区数最多的6个区县（横向排列） -->
+    <div class="district-container">
+        {% for district, count in top_districts %}
+        <div class="card">
+            <h3>{{ district }}</h3>
+            <p> <span class="number number-up">{{ count }}</span></p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- 地图容器 -->
+    <div id="chart-container"></div>
+
+     <script src="https://echarts.apache.org/zh/js/vendors/echarts/dist/echarts.min.js"></script>
+    <script src="https://api.map.baidu.com/api?v=3.0&ak=7ZjhAxgmRh8cJqtrz0N6xq4HhMu4ifEJ"></script>
+    <script src="https://echarts.apache.org/zh/js/vendors/echarts/dist/extension/bmap.min.js"></script>
+    <script>
+        var dom = document.getElementById('chart-container');
+        var myChart = echarts.init(dom, null, {
+            renderer: 'canvas',
+            useDirtyRect: false
+        });
+
+        var option;
+
+        // 从 Flask 渲染的数据
+        var district_data = {{ district_data | tojson }};
+        var geoCoordMap = {{ geo_coord_map | tojson }};
+
+        // 动态颜色：根据景区数量生成不同的颜色
+        function getColorByCount(count) {
+            if (count >= 251) {
+                return '#1E90FF'; // 深天蓝色
+            } else if (count >= 201) {
+                return '#00BFFF'; // 深青色
+            } else if (count >= 151) {
+                return '#20B2AA'; // 青色
+            } else if (count >= 101) {
+                return '#48D1CC'; // 淡青色
+            } else if (count >= 51) {
+                return '#87CEFA'; // 天蓝色
+            } else {
+                return '#B0E0E6'; // 浅天蓝色
+            }
+        }
+
+        // 将景区数量转化为地图数据
+        const convertData = function (data) {
+            var res = [];
+            for (var i = 0; i < data.length; i++) {
+                var geoCoord = geoCoordMap[data[i].name];
+                if (geoCoord) {
+                    res.push({
+                        name: data[i].name,
+                        value: geoCoord.concat(data[i].value)  // 经纬度和景区数量
+                    });
+                }
+            }
+            return res;
+        };
+
+        // 地图设置
+        option = {
+            backgroundColor: 'transparent',
+            title: {
+                text: '全国景区分布与数量统计',
+                subtext: '数据来自 MySQL',
+                sublink: 'http://www.example.com',
+                left: 'center',
+                top: '10px',
+                textStyle: {
+                    color: '#333',
+                    fontSize: 18
+                }
+            },
+            tooltip: {
+                trigger: 'item',
+                formatter: function (params) {
+                    var sceneryCount = params.value[2] || 1;
+                    return params.name + ' : ' + sceneryCount + ' 个景区';
+                },
+                backgroundColor: '#fff',
+                borderColor: '#ddd',
+                borderWidth: 1
+            },
+            bmap: {
+                center: [104.114129, 37.550339],
+                zoom: 5,
+                roam: true,
+                mapStyle: {
+                    styleJson: [
+                        {
+                            featureType: 'water',
+                            elementType: 'all',
+                            stylers: {
+                                color: '#abcaec'
+                            }
+                        },
+                        {
+                            featureType: 'land',
+                            elementType: 'all',
+                            stylers: {
+                                color: '#f0f0f0'
+                            }
+                        }
+                    ]
+                }
+            },
+            series: [
+                {
+                    name: '景区数量',
+                    type: 'scatter',
+                    coordinateSystem: 'bmap',
+                    data: convertData(district_data),
+                    symbolSize: function (val) {
+                        return val[2] / 10;
+                    },
+                    label: {
+                        formatter: '',
+                        position: 'right',
+                        show: true
+                    },
+                    emphasis: {
+                        label: {
+                            show: true
+                        }
+                    },
+                    clickable: true,
+                    itemStyle: {
+                        color: function (params) {
+                            return getColorByCount(params.value[2]);
+                        }
+                    }
+                },
+                {
+                    name: '波纹特效',
+                    type: 'effectScatter',
+                    coordinateSystem: 'bmap',
+                    data: convertData(district_data),
+                    symbolSize: function (val) {
+                        return val[2] / 10;
+                    },
+                    label: {
+                        formatter: '',
+                        position: 'right',
+                        show: true
+                    },
+                    rippleEffect: {
+                        brushType: 'stroke',
+                    },
+                    itemStyle: {
+                        color: function (params) {
+                            return getColorByCount(params.value[2]);
+                        }
+                    }
+                }
+            ]
+        };
+
+        // 设置地图option
+        myChart.setOption(option);
+
+        // 点击气泡后显示该区县的所有景区
+        myChart.on('click', function (params) {
+            var districtName = params.name;
+
+            fetch(`/get_attractions/${districtName}`)
+                .then(response => response.json())
+                .then(data => {
+                    myChart.setOption({
+                        series: [{
+                            type: 'scatter',
+                            coordinateSystem: 'bmap',
+                            data: data.map(function(attraction) {
+                                return {
+                                    name: attraction.word,
+                                    value: [attraction.lon, attraction.lat]
+                                };
+                            }),
+                            symbolSize: 10,
+                            label: {
+                                formatter: '{b}',
+                                position: 'right',
+                                show: true
+                            },
+                            itemStyle: {
+                                color: '#fc7f00'
+                            }
+                        }]
+                    });
+                })
+                .catch(error => console.error('Error fetching attractions:', error));
+        });
+    </script>
+
+</body>
+</html>

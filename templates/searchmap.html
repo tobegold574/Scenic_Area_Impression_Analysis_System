@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主题数据可视化</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #ffffff;
+        }
+        #chart-container {
+            position: relative;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #topic-selector {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            border: 1px solid #00bcd4;
+            color: #ffffff;
+        }
+        #topic-selector option {
+            background: #1e1e1e;
+            color: #00bcd4;
+        }
+         #topic-selector {
+        width: 200px; /* 设置下拉框宽度 */
+    }
+    #topic-selector option {
+        width: 100px; /* 选项宽度，限制字符显示 */
+        overflow: hidden; /* 隐藏溢出字符 */
+        white-space: nowrap; /* 不换行 */
+        text-overflow: ellipsis; /* 溢出时显示省略号 */
+    }
+    </style>
+    <script src="https://registry.npmmirror.com/echarts/5.5.1/files/dist/echarts.min.js"></script>
+    <script src="https://api.map.baidu.com/api?v=3.0&ak=vpmg8lUW90Rc2CZ6qG1slRkkgV3WWLZF"></script>
+    <script src="https://registry.npmmirror.com/echarts/5.5.1/files/dist/extension/bmap.min.js"></script>
+</head>
+<body>
+   <select id="topic-selector">
+    <option value=""></option>
+    <option value="all" selected>全部</option>
+    {% for topic in topics %}
+        <option value="{{ topic }}">{{ topic[:12] }}{% if topic|length > 12 %}...{% endif %}</option>
+    {% endfor %}
+</select>
+    <div id="chart-container"></div>
+
+    <script>
+        var dom = document.getElementById('chart-container');
+        var myChart = echarts.init(dom, null, {
+            renderer: 'canvas',
+            useDirtyRect: false
+        });
+
+        // 经纬度数据，将在后端提供
+        var geoCoordMap = {}; // 这里可以填入城市经纬度数据
+
+        // 根据选定主题获取数据
+        document.getElementById('topic-selector').addEventListener('change', function () {
+            var selectedTopic = this.value;
+            fetchData(selectedTopic);
+        });
+
+        // 页面加载时默认请求“全部”数据
+        window.onload = function() {
+            fetchData('all');
+        };
+
+        // 获取数据的函数
+        function fetchData(selectedTopic) {
+            if (selectedTopic) {
+                fetch('/get_data/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ topic: selectedTopic })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    updateChart(data);
+                })
+                .catch(error => console.error('Error fetching data:', error));
+            }
+        }
+
+        // 更新图表函数
+        function updateChart(data) {
+            var option = {
+                backgroundColor: 'transparent',
+                title: {
+                    text: '景区风评关键词搜索评论活跃度',
+                    left: 'center',
+                    top: '10px',
+                    textStyle: {
+                        color: '#ffffff',
+                        fontSize: 24,
+                        fontWeight: 'bold'
+                    }
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: function (params) {
+                        return params.name + ': ' + params.value[2]; // 显示城市名称和对应值
+                    }
+                },
+                bmap: {
+                    center: [104.114129, 37.550339],
+                    zoom: 5,
+                    roam: true,
+                    mapStyle: {
+                        styleJson: [
+                            {
+                                featureType: 'water',
+                                elementType: 'all',
+                                stylers: { color: '#0e1a27' }
+                            },
+                            {
+                                featureType: 'land',
+                                elementType: 'all',
+                                stylers: { color: '#1e1e1e' }
+                            },
+                            {
+                                featureType: 'railway',
+                                elementType: 'all',
+                                stylers: { visibility: 'off' }
+                            },
+                            {
+                                featureType: 'highway',
+                                elementType: 'all',
+                                stylers: { color: '#4c4c4c' }
+                            },
+                            {
+                                featureType: 'arterial',
+                                elementType: 'geometry',
+                                stylers: { color: '#333333' }
+                            },
+                            {
+                                featureType: 'poi',
+                                elementType: 'all',
+                                stylers: { visibility: 'off' }
+                            },
+                            {
+                                featureType: 'subway',
+                                elementType: 'all',
+                                stylers: { visibility: 'off' }
+                            },
+                            {
+                                featureType: 'building',
+                                elementType: 'all',
+                                stylers: { color: '#2c2c2c' }
+                            },
+                            {
+                                featureType: 'label',
+                                elementType: 'labels.text.fill',
+                                stylers: { color: '#ffffff' }
+                            }
+                        ]
+                    }
+                },
+                series: [
+                    {
+                        name: '数据',
+                        type: 'effectScatter',
+                        coordinateSystem: 'bmap',
+                        data: convertData(data),
+                        symbolSize: function (val) {
+                            return Math.sqrt(val[2]) * 5; // 放大点的大小
+                        },
+                        showEffectOn: 'render',
+                        rippleEffect: {
+                            brushType: 'stroke'
+                        },
+                        label: {
+                            formatter: '{b}',
+                            position: 'right',
+                            show: true // 显示标记
+                        },
+                        itemStyle: {
+                            shadowBlur: 20,
+                            shadowColor: 'rgba(0, 188, 212, 0.7)',
+                            color: '#00bcd4', // 科技感的颜色
+                            borderColor: '#00bcd4',
+                            borderWidth: 1
+                        },
+                        emphasis: {
+                            scale: true
+                        }
+                    }
+                ]
+            };
+            myChart.setOption(option);
+        }
+
+        // 转换数据格式
+        function convertData(data) {
+            var res = [];
+            for (var i = 0; i < data.length; i++) {
+                var { name, value, longitude, latitude } = data[i]; // 解构赋值
+                res.push({
+                    name: name,
+                    value: [longitude, latitude, value] // 这里使用经纬度和计数
+                });
+            }
+            return res;
+        }
+
+        window.addEventListener('resize', myChart.resize);
+    </script>
+</body>
+</html>

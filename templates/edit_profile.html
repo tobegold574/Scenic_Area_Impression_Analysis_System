@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑个人资料</title>
+    <!-- 引入layui的CSS文件 -->
+    <link rel="stylesheet" href="https://cdn.staticfile.org/layui/2.6.8/css/layui.css">
+    <!-- 引入Font Awesome的CSS文件 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* 自定义样式 */
+        .edit-form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #e6e6e6;
+            border-radius: 5px;
+            background-color: #f7f7f7;
+        }
+        .edit-form label {
+            display: inline-block;
+            width: 100px;
+            margin-bottom: 10px;
+        }
+        .edit-form input[type="text"],
+        .edit-form input[type="date"] {
+            width: calc(100% - 100px);
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        .edit-form input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #1E9FFF;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="layui-container">
+        <div class="layui-row">
+            <div class="layui-col-md12">
+                <div class="edit-form">
+                    <h1><i class="fas fa-user-edit"></i> 编辑个人资料</h1>
+                    <form method="POST">
+                        <div class="layui-form-item">
+                            <label class="layui-form-label"><i class="fas fa-envelope"></i> 邮箱：</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="email" lay-verify="required" autocomplete="off" class="layui-input" value="{{ user.email }}">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label"><i class="fas fa-user"></i> 全名：</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="full_name" lay-verify="required" autocomplete="off" class="layui-input" value="{{ user.full_name }}">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label"><i class="fas fa-map-marker-alt"></i> 地址：</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="address" lay-verify="required" autocomplete="off" class="layui-input" value="{{ user.address }}">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label"><i class="fas fa-phone"></i> 电话号码：</label>
+                            <div class="layui-input-block">
+                                <input type="text" name="phone_number" lay-verify="required|phone" autocomplete="off" class="layui-input" value="{{ user.phone_number }}">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <label class="layui-form-label"><i class="fas fa-birthday-cake"></i> 生日：</label>
+                            <div class="layui-input-block">
+                                <input type="date" name="birthday" lay-verify="required" autocomplete="off" class="layui-input" value="{{ user.birthday }}">
+                            </div>
+                        </div>
+                        <div class="layui-form-item">
+                            <button class="layui-btn layui-btn-normal" lay-submit lay-filter="formDemo"><i class="fas fa-save"></i> 保存</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入layui的JS文件 -->
+    <script src="https://cdn.staticfile.org/layui/2.6.8/layui.js"></script>
+</body>
+</html>

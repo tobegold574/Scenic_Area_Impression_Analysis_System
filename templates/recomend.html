@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>附近景点推荐</title>
+    <!-- 引入 Materialize CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            background-image: url('https://picsum.photos/1600/900?random=3'); /* 随机背景图片 */
+            background-size: cover; /* 背景图片填充整个页面 */
+            background-position: center; /* 背景居中 */
+            background-attachment: fixed; /* 背景固定 */
+            color: white; /* 文字颜色为白色，确保与背景对比 */
+        }
+        .container, .row {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            margin-left: 0;
+            margin-right: 0;
+        }
+        #map-container {
+            width: 100%;
+            height: 400px;
+        }
+        .attraction-card {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 325px;  /* 设置卡片最小高度 */
+            background-color: rgba(0, 0, 0, 0.5); /* 卡片背景色透明 */
+            color: white; /* 卡片文字颜色 */
+        }
+        .card-content {
+            flex-grow: 1;  /* 让内容区域扩展填充卡片 */
+        }
+        .card-action {
+            margin-top: auto;  /* 确保底部按钮始终在卡片的底部 */
+        }
+        .btn {
+            margin-top: 10px;
+        }
+        .status-message {
+            margin-top: 1px;
+        }
+        .col {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+    </style>
+    <!-- 引入百度地图 API -->
+    <script type="text/javascript" src="https://api.map.baidu.com/api?v=3.0&ak=vpmg8lUW90Rc2CZ6qG1slRkkgV3WWLZF"></script>
+</head>
+<body>
+    <div class="container-fluid">
+
+
+        <div class="row">
+            <!-- 获取位置按钮 -->
+            <div class="col s12 center-align">
+                <button class="btn waves-effect waves-light" onclick="getLocation()">获取我的位置</button>
+            </div>
+            <!-- 状态信息 -->
+            <div id="status" class="col s12 center-align status-message"></div>
+        </div>
+
+        <!-- 推荐的景点列表 -->
+        <div id="attractions-list">
+            {% if attractions %}
+                <h2 class="center-align">附近景点推荐</h2>
+                <div class="row">
+                    {% for attraction in attractions %}
+                        <div class="col s12 m6 l2"> <!-- 每行 5 个卡片 -->
+                            <!-- 每个景点的卡片 -->
+                            <div class="card attraction-card">
+                                <div class="card-content">
+                                    <span class="card-title">{{ attraction.word }}</span>
+
+                                    <p>评论数: {{ attraction.commentCount }}</p>
+                                    <p>评论评分: {{ attraction.commentScore }}</p>
+                                    <p>距离: {{ '%.2f' % attraction.distance }} km</p>
+                                    <p>详细地址: {{ attraction.address }}</p>
+                                </div>
+                                <div class="card-action">
+                                    <a href="{{ attraction.url }}" target="_blank" class="waves-effect waves-light btn-small">查看详细信息</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="center-align">没有找到推荐景点。</p>
+            {% endif %}
+        </div>
+
+        <!-- 百度地图容器 -->
+        <div id="map-container"></div>
+    </div>
+
+    <!-- Materialize JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    <script>
+        // 获取用户位置
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                document.getElementById("status").innerHTML = "Geolocation is not supported by this browser.";
+            }
+        }
+
+        function showPosition(position) {
+            var lat = position.coords.latitude;
+            var lon = position.coords.longitude;
+            document.getElementById("status").innerHTML = "正在加载附近景点...";
+
+            // 将位置参数附加到 URL
+            window.location.href = "/recomend?lat=" + lat + "&lon=" + lon;
+        }
+
+        function showError(error) {
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    document.getElementById("status").innerHTML = "User denied the request for Geolocation.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    document.getElementById("status").innerHTML = "Location information is unavailable.";
+                    break;
+                case error.TIMEOUT:
+                    document.getElementById("status").innerHTML = "The request to get user location timed out.";
+                    break;
+                case error.UNKNOWN_ERROR:
+                    document.getElementById("status").innerHTML = "An unknown error occurred.";
+                    break;
+            }
+        }
+
+        // 在百度地图上标记景点
+        function initMap(attractions, userLat, userLon) {
+            var map = new BMap.Map("map-container");            // 创建地图实例
+            var point = new BMap.Point(userLon, userLat);       // 设置地图中心点
+            map.centerAndZoom(point, 12);                       // 初始化地图，设置中心点和缩放级别
+
+            // 添加地图控件
+            map.addControl(new BMap.NavigationControl());      // 添加缩放控件
+            map.addControl(new BMap.MapTypeControl());         // 添加地图类型控件
+            map.addControl(new BMap.OverviewMapControl());     // 添加缩略图控件
+
+            // 遍历景点并在地图上添加标记
+            for (var i = 0; i < attractions.length; i++) {
+                var attraction = attractions[i];
+                var lat = attraction.lat;
+                var lon = attraction.lon;
+                var title = attraction.word;  // 景点名称
+                var district = attraction.districtName;  // 所在区名称
+                var commentCount = attraction.commentCount;  // 评论数
+                var commentScore = attraction.commentScore;  // 评论评分
+                var url = attraction.url;  // 景点链接
+
+                // 创建一个标记
+                var marker = new BMap.Marker(new BMap.Point(lon, lat));  // 创建标记
+                map.addOverlay(marker);                                  // 将标记添加到地图
+
+                // 为每个标记创建独立的信息窗口
+                (function(marker, title, district, commentCount, commentScore, url) {
+                    var infoWindowContent = `
+                        <b>${title}</b><br>
+                        地址: ${district}<br>
+                        评论数: ${commentCount}<br>
+                        评论评分: ${commentScore}<br>
+                        <a href="${url}" target="_blank">查看详细信息</a>
+                    `;
+                    var infoWindow = new BMap.InfoWindow(infoWindowContent, {
+                        width: 250,
+                        height: 150,
+                        title: title
+                    });
+
+                    // 为标记添加点击事件，打开信息窗口
+                    marker.addEventListener("click", function() {
+                        this.openInfoWindow(infoWindow);
+                    });
+                })(marker, title, district, commentCount, commentScore, url);
+            }
+        }
+
+        // 渲染页面并初始化地图
+        window.onload = function() {
+            {% if attractions %}
+                var attractions = {{ attractions | tojson }};
+                var userLat = {{ user_lat }};
+                var userLon = {{ user_lon }};
+                initMap(attractions, userLat, userLon);
+            {% endif %}
+        };
+    </script>
+</body>
+</html>

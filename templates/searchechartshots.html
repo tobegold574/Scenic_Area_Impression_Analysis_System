@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>情感分析可视化</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #f8cdda, #1d2b64);
+            color: #333;
+            padding: 1px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            width: 200px;
+            border: 1px solid #ddd;
+            outline: none;
+        }
+        select:focus {
+            border-color: #1d2b64;
+            box-shadow: 0 0 5px rgba(29, 43, 100, 0.5);
+        }
+        .chart-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .chart-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .chart {
+            width: 500px; /* 调整图表宽度 */
+            height: 400px;
+            margin: 10px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            font-size: 1.5em;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <h1>景区话题情感分析</h1>
+    <select id="topic-select">
+        <option value="">选择话题</option>
+        {% for mid in mids %}
+        <option value="{{ mid }}">{{ mid }}</option>
+        {% endfor %}
+    </select>
+
+    <div class="loading" id="loading">加载中...</div>
+
+    <div class="chart-container">
+        <div class="chart-row">
+            <div id="bar-chart" class="chart"></div>
+            <div id="gender-bar-chart" class="chart"></div>
+        </div>
+        <div class="chart-row">
+            <div id="pie-chart" class="chart"></div>
+            <div id="gender-pie-chart" class="chart"></div>
+        </div>
+        <div class="chart-row">
+            <div id="sentiment-area-chart" class="chart"></div>
+            <div id="gender-sentiment-area-chart" class="chart"></div>
+        </div>
+
+    </div>
+
+    <script>
+        function loadChartData(selectedmid) {
+            if (selectedmid) {
+                $('#loading').show(); // 显示加载指示器
+                $.getJSON(`/get_sentiment_datas/${selectedmid}`, function(data) {
+                    $('#loading').hide(); // 隐藏加载指示器
+                    if (!data.error) {
+                        drawBarChart(data.sentiment_counts);
+                        drawPieChart(data.sentiment_counts);
+                        drawSentimentAreaChart(data.hourly_sentiment);
+                    } else {
+                        alert(data.error);
+                    }
+                });
+
+                // 新增：获取性别相关情感数据
+                $.getJSON(`/get_gender_sentiment_datas/${selectedmid}`, function(data) {
+                    $('#loading').hide(); // 隐藏加载指示器
+                    drawGenderBarChart(data.gender_sentiment_counts);
+                    drawGenderPieChart(data.male_sentiment_percentages, data.female_sentiment_percentages);
+                    drawGenderSentimentAreaChart(data.male_hourly_sentiment, data.female_hourly_sentiment);
+                });
+            }
+        }
+
+        $('#topic-select').change(function() {
+            var selectedmid = $(this).val();
+            loadChartData(selectedmid);
+        });
+
+        // 页面加载时默认选择第一个话题
+        $(document).ready(function() {
+            var firstOption = $('#topic-select option').eq(1).val(); // 获取第一个选项的值（假设第一个是“选择话题”）
+            if (firstOption) {
+                $('#topic-select').val(firstOption); // 设置下拉框为第一个选项
+                loadChartData(firstOption); // 加载数据
+            }
+        });
+
+        function drawBarChart(sentimentCounts) {
+            var chart = echarts.init(document.getElementById('bar-chart'));
+            var option = {
+                title: { text: '情感评论数量柱状图' },
+                tooltip: {},
+                xAxis: { type: 'category', data: ['正面', '负面', '中性'] },
+                yAxis: { type: 'value' },
+                series: [{
+                    data: [
+                        sentimentCounts['正面'] || 0,
+                        sentimentCounts['负面'] || 0,
+                        sentimentCounts['中性'] || 0
+                    ],
+                    type: 'bar',
+                    itemStyle: {
+                        color: '#4CAF50'
+                    }
+                }]
+            };
+            chart.setOption(option);
+        }
+
+        function drawPieChart(sentimentCounts) {
+            var total = (sentimentCounts['正面'] || 0) + (sentimentCounts['负面'] || 0) + (sentimentCounts['中性'] || 0);
+            var chart = echarts.init(document.getElementById('pie-chart'));
+            var option = {
+                title: { text: '情感评论比例饼图', x: 'center' },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{a} <br/>{b}: {d}%'
+                },
+                series: [{
+                    name: '评论比例',
+                    type: 'pie',
+                    radius: '50%',
+                    data: [
+                        { value: (sentimentCounts['正面'] || 0) / total * 100, name: '正面' },
+                        { value: (sentimentCounts['负面'] || 0) / total * 100, name: '负面' },
+                        { value: (sentimentCounts['中性'] || 0) / total * 100, name: '中性' }
+                    ]
+                }]
+            };
+            chart.setOption(option);
+        }
+
+        function drawSentimentAreaChart(hourlySentiment) {
+            var chart = echarts.init(document.getElementById('sentiment-area-chart'));
+            var option = {
+                title: { text: '情感分数面积图' },
+                tooltip: { trigger: 'axis' },
+                legend: { data: ['正面', '负面', '中性'] },
+                xAxis: { type: 'category', data: hourlySentiment.map(item => item.created_at) },
+                yAxis: { type: 'value' },
+                series: [
+                    {
+                        name: '正面',
+                        type: 'line',
+                        areaStyle: {},
+                        data: hourlySentiment.map(item => item.正面 || 0)
+                    },
+                    {
+                        name: '负面',
+                        type: 'line',
+                        areaStyle: {},
+                        data: hourlySentiment.map(item => item.负面 || 0)
+                    },
+                    {
+                        name: '中性',
+                        type: 'line',
+                        areaStyle: {},
+                        data: hourlySentiment.map(item => item.中性 || 0)
+                    }
+                ]
+            };
+            chart.setOption(option);
+        }
+
+        function drawGenderBarChart(genderSentimentCounts) {
+            var chart = echarts.init(document.getElementById('gender-bar-chart'));
+            var option = {
+                title: { text: '男女情感互动' },
+                tooltip: { trigger: 'axis' },
+                xAxis: { type: 'category', data: ['正面', '负面', '中性'] },
+                yAxis: { type: 'value' },
+                legend: { data: ['男性', '女性'] },
+                series: [
+                    {
+                        name: '男性',
+                        type: 'bar',
+                        stack: '总量',
+                        data: [genderSentimentCounts['m']['正面'] || 0, genderSentimentCounts['m']['负面'] || 0, genderSentimentCounts['m']['中性'] || 0],
+                        itemStyle: {
+                            color: '#2196F3'
+                        }
+                    },
+                    {
+                        name: '女性',
+                        type: 'bar',
+                        stack: '总量',
+                        data: [genderSentimentCounts['f']['正面'] || 0, genderSentimentCounts['f']['负面'] || 0, genderSentimentCounts['f']['中性'] || 0],
+                        itemStyle: {
+                            color: '#FF4081'
+                        }
+                    }
+                ]
+            };
+            chart.setOption(option);
+        }
+
+        function drawGenderPieChart(maleSentimentPercentages, femaleSentimentPercentages) {
+            var chart = echarts.init(document.getElementById('gender-pie-chart'));
+            var option = {
+                title: { text: '男女情感评论比例饼图' },
+                tooltip: { trigger: 'item', formatter: '{a} <br/>{b}: {c}%' },
+                series: [
+                    {
+                        name: '男性情感',
+                        type: 'pie',
+                        radius: ['40%', '60%'],
+                        center: ['25%', '50%'],
+                        data: [
+                            { value: maleSentimentPercentages['正面'] || 0, name: '正面' },
+                            { value: maleSentimentPercentages['负面'] || 0, name: '负面' },
+                            { value: maleSentimentPercentages['中性'] || 0, name: '中性' }
+                        ]
+                    },
+                    {
+                        name: '女性情感',
+                        type: 'pie',
+                        radius: ['40%', '60%'],
+                        center: ['75%', '50%'],
+                        data: [
+                            { value: femaleSentimentPercentages['正面'] || 0, name: '正面' },
+                            { value: femaleSentimentPercentages['负面'] || 0, name: '负面' },
+                            { value: femaleSentimentPercentages['中性'] || 0, name: '中性' }
+                        ]
+                    }
+                ]
+            };
+            chart.setOption(option);
+        }
+
+        function drawGenderSentimentAreaChart(maleHourlySentiment, femaleHourlySentiment) {
+            var chart = echarts.init(document.getElementById('gender-sentiment-area-chart'));
+            var option = {
+                title: { text: '' },
+                tooltip: { trigger: 'axis' },
+                legend: { data: ['男性正面', '男性负面', '男性中性', '女性正面', '女性负面', '女性中性'] },
+                xAxis: { type: 'category', data: maleHourlySentiment.map(item => item.created_hour) },
+                yAxis: { type: 'value' },
+                series: [
+                    { name: '男性正面', type: 'line', areaStyle: {}, data: maleHourlySentiment.map(item => item.正面 || 0) },
+                    { name: '男性负面', type: 'line', areaStyle: {}, data: maleHourlySentiment.map(item => item.负面 || 0) },
+                    { name: '男性中性', type: 'line', areaStyle: {}, data: maleHourlySentiment.map(item => item.中性 || 0) },
+                    { name: '女性正面', type: 'line', areaStyle: {}, data: femaleHourlySentiment.map(item => item.正面 || 0) },
+                    { name: '女性负面', type: 'line', areaStyle: {}, data: femaleHourlySentiment.map(item => item.负面 || 0) },
+                    { name: '女性中性', type: 'line', areaStyle: {}, data: femaleHourlySentiment.map(item => item.中性 || 0) }
+                ]
+            };
+            chart.setOption(option);
+        }
+    </script>
+</body>
+</html>

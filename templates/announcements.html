@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公告</title>
+    <!-- 引入layui的CSS文件 -->
+    <link rel="stylesheet" href="https://cdn.staticfile.org/layui/2.6.8/css/layui.css">
+    <!-- 引入Font Awesome的CSS文件 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* 自定义样式 */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .container h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+        }
+        li p {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+        }
+        .announcement-icon {
+            margin-right: 10px;
+            color: #1E9FFF;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-bullhorn announcement-icon"></i> 公告</h1>
+        <ul>
+            {% for announcement in announcements %}
+            <li>
+                <p>{{ announcement.content }}</p>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- 引入layui的JS文件 -->
+    <script src="https://cdn.staticfile.org/layui/2.6.8/layui.js"></script>
+</body>
+</html>

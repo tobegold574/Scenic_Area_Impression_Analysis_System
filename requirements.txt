@@ -1,0 +1,14 @@
+Flask
+Flask-SQLAlchemy
+Flask-Admin
+Flask-Babel
+mysql-connector-python
+pandas
+numpy
+requests
+beautifulsoup4
+snownlp
+geopy
+pymysql
+pyecharts
+python-dotenv
